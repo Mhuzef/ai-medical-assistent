@@ -17,6 +17,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let usersDB = JSON.parse(localStorage.getItem('users')) || [];
     let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
+    // Create a default test user if the database is completely empty
+    if (usersDB.length === 0) {
+        usersDB.push({ name: 'Admin Demo', login: 'admin@demo.com', password: 'password123' });
+        localStorage.setItem('users', JSON.stringify(usersDB));
+    }
+
     const profileAuthBtn = document.getElementById('profile-auth-btn');
     const authCloseBtn = document.getElementById('auth-close-btn');
 
@@ -159,21 +165,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const id = document.getElementById('login-id').value.trim();
         const pass = document.getElementById('login-pass').value;
         
-        const user = usersDB.find(u => u.login === id && u.password === pass);
+        const user = usersDB.find(u => u.login === id);
         
         if (user) {
-            currentUser = { name: user.name, login: user.login };
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            
-            const loader = document.getElementById('login-loader');
-            loader.style.display = 'block';
-            setTimeout(() => {
-                loader.style.display = 'none';
-                showApp();
-            }, 800);
+            if (user.password === pass) {
+                currentUser = { name: user.name, login: user.login };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                const loader = document.getElementById('login-loader');
+                loader.style.display = 'block';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    showApp();
+                }, 800);
+            } else {
+                const mainErr = document.getElementById('login-main-error');
+                mainErr.textContent = 'Incorrect password.';
+                mainErr.classList.remove('hidden');
+                document.getElementById('login-pass').classList.add('input-error');
+            }
         } else {
             const mainErr = document.getElementById('login-main-error');
-            mainErr.textContent = 'Invalid email/phone or password.';
+            mainErr.innerHTML = 'Account not found. Please switch to the <strong>Sign Up</strong> tab first.';
             mainErr.classList.remove('hidden');
             document.getElementById('login-id').classList.add('input-error');
         }
